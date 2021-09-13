@@ -5,9 +5,7 @@ use lambda_http::{
     Request, Response,
 };
 use simple_logger::SimpleLogger;
-mod get;
-mod post;
-mod unknown;
+mod routes;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -20,8 +18,8 @@ async fn handler_func(request: Request, context: Context) -> Result<Response<Str
     let method = request.method();
 
     match *method {
-        Method::GET => get::handler(request, context),
-        Method::POST => post::handler(request, context),
-        _ => unknown::handler(request, context),
+        Method::GET => routes::get_route::handler(request, context),
+        Method::POST => routes::post_route::handler(request, context),
+        _ => routes::unknown_route::handler(request, context),
     }
 }
