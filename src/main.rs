@@ -2,10 +2,11 @@ use lambda_http::{
     handler,
     http::{Method, StatusCode},
     lambda_runtime::{self, Context, Error},
-    Request, RequestExt, Response,
+    Body, Request, RequestExt, Response,
 };
 use log;
 use serde::{Deserialize, Serialize};
+use serde_json;
 use simple_logger::SimpleLogger;
 
 type MethodResponses = Result<Response<String>, Error>;
@@ -53,11 +54,33 @@ fn get_handler(request: Request, _: Context) -> MethodResponses {
     }
 }
 
-fn post_handler(_request: Request, _: Context) -> MethodResponses {
-    Ok(Response::builder()
-        .status(StatusCode::OK)
-        .body(String::from("response"))
-        .unwrap())
+fn post_handler(request: Request, _: Context) -> MethodResponses {
+    match request.body() {
+        Body::Text(string) => {
+            log::info!("{}", string);
+
+            let brew: Result<Brew, serde_json::Error> = serde_json::from_str(string);
+
+            match brew {
+                Ok(value) => {
+                    log::info!("Got the values");
+
+                    Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .body(serde_json::to_string(&value).unwrap())
+                        .unwrap())
+                }
+                _ => Ok(Response::builder()
+                    .status(StatusCode::NOT_ACCEPTABLE)
+                    .body(String::new())
+                    .unwrap()),
+            }
+        }
+        _ => Ok(Response::builder()
+            .status(StatusCode::NOT_ACCEPTABLE)
+            .body(String::new())
+            .unwrap()),
+    }
 }
 
 fn unknown_method_handler(request: Request, _: Context) -> MethodResponses {
