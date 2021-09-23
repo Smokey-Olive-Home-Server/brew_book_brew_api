@@ -1,16 +1,9 @@
-use aws_config;
-use aws_sdk_dynamodb::{model::AttributeValue, Client};
-use lambda_http::{http::StatusCode, lambda_runtime::Error, Body, Context, Request, Response};
-use serde::{Deserialize, Serialize};
+use lambda_http::{http::StatusCode, Body, Request, Response};
 use serde_json;
 
-#[derive(Serialize, Deserialize)]
-pub struct Brew {
-    id: String,
-    brew_title: String,
-}
+use crate::repository::{Brew, Repository};
 
-pub async fn handler(request: Request, _: Context) -> Result<Response<String>, Error> {
+pub async fn handler(request: Request, repository: &Repository) -> Response<String> {
     match request.body() {
         Body::Text(string) => {
             log::info!("{}", string);
@@ -21,34 +14,17 @@ pub async fn handler(request: Request, _: Context) -> Result<Response<String>, E
                 Ok(value) => {
                     log::info!("Got the values");
 
-                    let results = save_in_db(&value).await;
+                    repository.post_brew(&value).await;
 
-                    Ok(results)
+                    Response::builder()
+                        .status(StatusCode::OK)
+                        .body(serde_json::to_string(&value).unwrap())
+                        .unwrap()
                 }
-                _ => Ok(not_accepted()),
+                _ => not_accepted(),
             }
         }
-        _ => Ok(not_accepted()),
-    }
-}
-
-pub async fn save_in_db(brew: &Brew) -> Response<String> {
-    let shared_config = aws_config::load_from_env().await;
-    let client = Client::new(&shared_config);
-    let response = client
-        .put_item()
-        .table_name("brews")
-        .item("id", AttributeValue::S(brew.id.to_string()))
-        .item("brew_title", AttributeValue::S(brew.brew_title.to_string()));
-
-    let results = response.send().await;
-
-    match results {
-        Ok(_) => Response::builder()
-            .status(StatusCode::OK)
-            .body(serde_json::to_string(&brew).unwrap())
-            .unwrap(),
-        Err(_) => not_accepted(),
+        _ => not_accepted(),
     }
 }
 

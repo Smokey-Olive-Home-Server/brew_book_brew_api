@@ -15,7 +15,8 @@ lambda_http = "^0.4.0"
 tokio = "^1.11.0"
 serde = "^1.0.130"
 serde_json = "^1.0"
-simplelog = "0.10.0"
+simple_logger = "1.13.0"
 log = "0.4.14"
+lazy_static = "1.4.0"
 aws-config = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.18-alpha", package = "aws-config" }
 aws-sdk-dynamodb = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.18-alpha", package = "aws-sdk-dynamodb" }
