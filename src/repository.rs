@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use aws_config;
 use aws_sdk_dynamodb::{
     model::{AttributeValue, Select},
     Client,
 };
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -25,7 +25,7 @@ impl Repository {
 
         Repository {
             dynamo_client,
-            table_name,
+            table_name: table_name,
         }
     }
 }
